@@ -17,7 +17,7 @@ namespace UnityGRPC.Editor
         [MenuItem("UnityGRPC/Compile Protos in Asset Folder")]
         public static void CompileProtofiles()
         {
-            SetupAndComple(toolsPath);
+            SetupAndCompile(toolsPath);
         }
 
         [MenuItem("UnityGRPC/Compile Protos in Folder")]
@@ -25,19 +25,33 @@ namespace UnityGRPC.Editor
         {
             string path = EditorUtility.OpenFolderPanel("Choose Folder to build protos in", "", "");
             path = path + "/GrpcTools~";
-            SetupAndComple(path);
+            SetupAndCompile(path);
         }
 
-        public static void SetupAndComple(string path)
+        public static void SetupAndCompile(string path)
         {
             Debug.Log("Started Compiling in " + path);
             SetupToolsInPath(path);
-            RunDotnetProcess("restore",path);
-            RunDotnetProcess("build",path);
-            Debug.Log("Finished Compiling");
+            try
+            {
+                RunDotnetProcess("restore", path);
+                RunDotnetProcess("build", path);
+                Debug.Log("Finished Compiling");
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
+            finally
+            {
+                CleanUp(path);
+            }
         }
-        
-        
+
+        private static void CleanUp(string path)
+        {
+            Directory.Delete(path,true);
+        }
         private static void RunDotnetProcess(string argument, string workdingDir)
         {
             ProcessStartInfo psi = new ProcessStartInfo();
@@ -74,8 +88,6 @@ namespace UnityGRPC.Editor
             if (!Directory.Exists(path))
                 Directory.CreateDirectory(path);
             WriteFile(path+csprojFilePath, csprojFileContent);
-            WriteFile(path+gitignoreFilePath, gitignoreFileContent);
-            
         }
 
         private static void WriteFile(string path, string content)
@@ -88,20 +100,6 @@ namespace UnityGRPC.Editor
             }
         }
         
-        private static void ProcessOnExited(object sender, EventArgs e)
-        {
-            ((IDisposable)sender).Dispose();
-        }
-
-        private static void ProcessOnErrorDataReceived(object sender, DataReceivedEventArgs e)
-        {
-            Debug.LogError(e.Data);
-        }
-
-        private static void ProcessOnOutputDataReceived(object sender, DataReceivedEventArgs e)
-        {
-            Debug.Log(e.Data);
-        }
         private static string toolsPath = Application.dataPath + "/GrpcTools~";
         private static string csprojFilePath = "/.protos.csproj";
         private const string csprojFileContent = 
@@ -122,11 +120,6 @@ namespace UnityGRPC.Editor
         </ItemGroup>
         </Project>
         ";
-        private static string gitignoreFilePath = "/.gitignore";
-        private const string gitignoreFileContent = @"
-obj/**
-bin/**
-";
     }
 }
 

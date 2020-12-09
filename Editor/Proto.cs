@@ -29,7 +29,6 @@ namespace UnityGRPC.Editor
         }
         internal static UnityEngine.Object CreateScript(string pathName, string templatePath)
         {
-            Debug.Log("template path: " + templatePath);
             string newFilePath = Path.GetFullPath (pathName);
 
             string templateText = string.Empty;
@@ -42,10 +41,8 @@ namespace UnityGRPC.Editor
                 }
 
                 var packageName = Utility.GetPackageName(pathName);
-                Debug.Log(packageName);
                 templateText = templateText.Replace ("##PACKAGE##", packageName);
                 var nameSpace = Utility.GetNameSpace(pathName);
-                Debug.Log(nameSpace);
                 templateText = templateText.Replace ("##NAMESPACE##", nameSpace);
                 UTF8Encoding encoding = new UTF8Encoding (true, false);
 				
@@ -71,7 +68,6 @@ namespace UnityGRPC.Editor
         public override void Action (int instanceId, string pathName, string resourceFile)
         {
             pathName = Utility.GetCleanPath(pathName);
-            Debug.Log(pathName);
             UnityEngine.Object o = ProtoTemplateMenuItem.CreateScript(pathName, resourceFile);
             ProjectWindowUtil.ShowCreatedAsset(o);
         }
@@ -110,11 +106,11 @@ namespace UnityGRPC.Editor
         }
         public static string GetPluginPath()
         {
-            if (System.IO.File.Exists(Path.GetFullPath("Packages/com.donnerlab.unitygrpc/Tools~/UnityGRPC.csproj")))
+            if (System.IO.File.Exists(Path.GetFullPath("Packages/com.donnerlab.unitygrpc/README.md")))
                 return Path.GetFullPath("Packages/com.donnerlab.unitygrpc");
-            if(File.Exists(Application.dataPath+"/UnityGRPC/Tools~/UnityGRPC.csproj"))
+            if(File.Exists(Application.dataPath+"/UnityGRPC/README.md"))
                 return Application.dataPath +"/UnityGRPC";
-            if (System.IO.File.Exists(Path.GetFullPath("Packages/UnityGRPC/Tools~/UnityGRPC.csproj")))
+            if (System.IO.File.Exists(Path.GetFullPath("Packages/UnityGRPC/README.md")))
                 return Path.GetFullPath("Packages/UnityGRPC/Tools~/UnityGRPC.csproj");
             return Path.GetFullPath("Packages/com.donnerlab.unitygrpc");
         }
