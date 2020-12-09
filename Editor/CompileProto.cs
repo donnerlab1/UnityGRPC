@@ -15,7 +15,7 @@ namespace UnityGRPC.Editor
     public class UnityGrpcTools
     {
         [MenuItem("UnityGRPC/Compile Protofiles")]
-        public static async void CompileProtofiles()
+        public static void CompileProtofiles()
         {
             SetupTools();
             RunDotnetProcess("restore");
