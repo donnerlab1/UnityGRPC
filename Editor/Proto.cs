@@ -16,7 +16,7 @@ namespace UnityGRPC.Editor
         {
             CreateFromTemplate(
                 "NewProto.proto", 
-                Utility.GetPluginPath()+"/Editor/Templates/proto.txt");
+                Utility.GetPluginPath()+"\\Editor\\Templates\\proto.txt");
         }
         public static void CreateFromTemplate(string initialName, string templatePath)
         {
@@ -29,6 +29,7 @@ namespace UnityGRPC.Editor
         }
         internal static UnityEngine.Object CreateScript(string pathName, string templatePath)
         {
+            Debug.Log("template path: " + templatePath);
             string newFilePath = Path.GetFullPath (pathName);
 
             string templateText = string.Empty;
@@ -111,7 +112,9 @@ namespace UnityGRPC.Editor
                 return Path.GetFullPath("Packages/com.donnerlab.unitygrpc");
             if(File.Exists(Application.dataPath+"/UnityGRPC/Tools~/UnityGRPC.csproj"))
                 return Application.dataPath +"/UnityGRPC";
-            return "";
+            if (System.IO.File.Exists(Path.GetFullPath("Packages/UnityGRPC/Tools~/UnityGRPC.csproj")))
+                return Path.GetFullPath("Packages/UnityGRPC/Tools~/UnityGRPC.csproj");
+            return Path.GetFullPath("Packages/com.donnerlab.unitygrpc");
         }
     }
 }

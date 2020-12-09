@@ -14,37 +14,71 @@ namespace UnityGRPC.Editor
 {
     public class UnityGrpcTools
     {
-        [MenuItem("UnityGRPC/dotnet restore")]
-        public static async void DotNetRestore()
+        [MenuItem("UnityGRPC/Compile Protofiles")]
+        public static async void CompileProtofiles()
         {
-
-            await runDotnetProcess("restore");
-            await runDotnetProcess("build");
-            Debug.Log("got here");
+            SetupTools();
+            RunDotnetProcess("restore");
+            RunDotnetProcess("build");
+            Debug.Log("Finished Compiling");
 
         }
-
-        private static async Task runDotnetProcess(string argument)
+        
+        
+        private static void RunDotnetProcess(string argument)
         {
-            var process = new Process();
-            process.StartInfo.WorkingDirectory = Utility.GetPluginPath()+"/Tools~";
-            process.StartInfo.FileName = "dotnet";
-            process.StartInfo.Arguments = argument;
-            process.OutputDataReceived += ProcessOnOutputDataReceived;
-            process.ErrorDataReceived += ProcessOnErrorDataReceived;
-            process.Exited += ProcessOnExited;
-            process.Start();
-            while (!process.HasExited)
-            {
-                await Task.Delay(1);
-            }
+            ProcessStartInfo psi = new ProcessStartInfo();
+            psi.WorkingDirectory = toolsPath;
+            psi.FileName = "dotnet";
+            psi.Arguments = argument;
+            psi.UseShellExecute = false;
+            psi.RedirectStandardError = true;
+            psi.RedirectStandardOutput = true;
 
-            if (process.ExitCode != 0)
+            using (var process = Process.Start(psi))
             {
-                throw new Exception("dotnet " + argument + " has failed");
+                process.WaitForExit();
+                var output = process.StandardOutput.ReadToEnd();
+                var error = process.StandardError.ReadToEnd();
+                if (output.Length > 0)
+                {
+                    Debug.Log(output);
+                }
+                
+                if(error.Length > 0)
+                {
+                    Debug.LogError(error);
+                }
+                if (process.ExitCode != 0)
+                {
+                    throw new Exception("dotnet " + argument + " has failed");
+                }
             }
         }
+        
+        
 
+        
+
+        private static void SetupTools()
+        {
+            if (!Directory.Exists(toolsPath))
+                Directory.CreateDirectory(toolsPath);
+            WriteFile(csprojFilePath, csprojFileContent);
+            WriteFile(gitignoreFilePath, gitignoreFileContent);
+            
+        }
+
+        private static void WriteFile(string path, string content)
+        {
+            if (File.Exists(path))
+                File.Delete(path);
+            using (var writer = File.CreateText(path))
+            {
+                writer.Write(content);
+            }
+        }
+        
         private static void ProcessOnExited(object sender, EventArgs e)
         {
             ((IDisposable)sender).Dispose();
@@ -59,8 +93,31 @@ namespace UnityGRPC.Editor
         {
             Debug.Log(e.Data);
         }
+        private static string toolsPath = Application.dataPath + "/GrpcTools~";
+        private static string csprojFilePath = toolsPath + "/.protos.csproj";
+        private const string csprojFileContent = 
+            @"
+        <Project Sdk=""Microsoft.NET.Sdk\"">
+        <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        </PropertyGroup>
 
-        
+        <ItemGroup>
+        <PackageReference Include=""Grpc.Tools"" Version=""2.34.0"">
+        <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+        </ItemGroup>
+        <ItemGroup>
+    
+        <Protobuf Include=""../**/*.proto"" OutputDir=""%(RelativeDir)"" CompileOutputs=""false"" />
+        </ItemGroup>
+        </Project>
+        ";
+        private static string gitignoreFilePath = toolsPath + "/.gitignore";
+        private const string gitignoreFileContent = @"
+obj/**
+bin/**
+";
     }
 }
 
