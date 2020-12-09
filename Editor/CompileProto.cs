@@ -14,21 +14,34 @@ namespace UnityGRPC.Editor
 {
     public class UnityGrpcTools
     {
-        [MenuItem("UnityGRPC/Compile Protofiles")]
+        [MenuItem("UnityGRPC/Compile Protos in Asset Folder")]
         public static void CompileProtofiles()
         {
-            SetupTools();
-            RunDotnetProcess("restore");
-            RunDotnetProcess("build");
-            Debug.Log("Finished Compiling");
+            SetupAndComple(toolsPath);
+        }
 
+        [MenuItem("UnityGRPC/Compile Protos in Folder")]
+        public static void CompileProtofilesInFolder()
+        {
+            string path = EditorUtility.OpenFolderPanel("Choose Folder to build protos in", "", "");
+            path = path + "/GrpcTools~";
+            SetupAndComple(path);
+        }
+
+        public static void SetupAndComple(string path)
+        {
+            Debug.Log("Started Compiling in " + path);
+            SetupToolsInPath(path);
+            RunDotnetProcess("restore",path);
+            RunDotnetProcess("build",path);
+            Debug.Log("Finished Compiling");
         }
         
         
-        private static void RunDotnetProcess(string argument)
+        private static void RunDotnetProcess(string argument, string workdingDir)
         {
             ProcessStartInfo psi = new ProcessStartInfo();
-            psi.WorkingDirectory = toolsPath;
+            psi.WorkingDirectory = workdingDir;
             psi.FileName = "dotnet";
             psi.Arguments = argument;
             psi.UseShellExecute = false;
@@ -55,17 +68,13 @@ namespace UnityGRPC.Editor
                 }
             }
         }
-        
-        
 
-        
-
-        private static void SetupTools()
+        private static void SetupToolsInPath(string path)
         {
-            if (!Directory.Exists(toolsPath))
-                Directory.CreateDirectory(toolsPath);
-            WriteFile(csprojFilePath, csprojFileContent);
-            WriteFile(gitignoreFilePath, gitignoreFileContent);
+            if (!Directory.Exists(path))
+                Directory.CreateDirectory(path);
+            WriteFile(path+csprojFilePath, csprojFileContent);
+            WriteFile(path+gitignoreFilePath, gitignoreFileContent);
             
         }
 
@@ -94,7 +103,7 @@ namespace UnityGRPC.Editor
             Debug.Log(e.Data);
         }
         private static string toolsPath = Application.dataPath + "/GrpcTools~";
-        private static string csprojFilePath = toolsPath + "/.protos.csproj";
+        private static string csprojFilePath = "/.protos.csproj";
         private const string csprojFileContent = 
             @"
         <Project Sdk=""Microsoft.NET.Sdk\"">
@@ -113,7 +122,7 @@ namespace UnityGRPC.Editor
         </ItemGroup>
         </Project>
         ";
-        private static string gitignoreFilePath = toolsPath + "/.gitignore";
+        private static string gitignoreFilePath = "/.gitignore";
         private const string gitignoreFileContent = @"
 obj/**
 bin/**

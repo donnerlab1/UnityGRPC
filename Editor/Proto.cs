@@ -91,6 +91,8 @@ namespace UnityGRPC.Editor
         {
             var folders = Path.GetDirectoryName(pathName).Split('\\');
             var package =  folders[folders.Length - 1];
+            if (folders.Length == 1)
+                return package;
             var root = folders[1];
             return root + "." + package;
         }
