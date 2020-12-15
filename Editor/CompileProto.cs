@@ -28,6 +28,33 @@ namespace UnityGRPC.Editor
             SetupAndCompile(path);
         }
 
+        [MenuItem("Assets/CompileProtos")]
+        public static void CompileProtos()
+        {
+            var path = "";
+            var obj = Selection.activeObject;
+            if (obj == null) path = "Assets";
+            else path = AssetDatabase.GetAssetPath(obj.GetInstanceID());
+            SetupAndCompile(path);
+        }
+
+        [MenuItem("Assets/CompileProtos", true)]
+        public static bool IsFoliderValidation()
+        {
+            var path = "";
+            var obj = Selection.activeObject;
+            if (obj == null) path = "Assets";
+            else path = AssetDatabase.GetAssetPath(obj.GetInstanceID());
+            if (path.Length > 0)
+            {
+                if (Directory.Exists(path))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         public static void SetupAndCompile(string path)
         {
             Debug.Log("Started Compiling in " + path);
@@ -61,6 +88,8 @@ namespace UnityGRPC.Editor
             psi.UseShellExecute = false;
             psi.RedirectStandardError = true;
             psi.RedirectStandardOutput = true;
+            psi.WindowStyle = ProcessWindowStyle.Hidden;
+            psi.CreateNoWindow = true;
 
             using (var process = Process.Start(psi))
             {
